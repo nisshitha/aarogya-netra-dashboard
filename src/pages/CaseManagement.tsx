@@ -1,13 +1,93 @@
-import { FolderOpen } from "lucide-react";
+import { useState } from "react";
+import { FolderOpen, Search, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const CaseManagement = () => {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deptFilter, setDeptFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+
+  const statCards = [
+    { label: "Total Cases", value: 0, color: "text-foreground", bg: "" },
+    { label: "Open", value: 0, color: "text-red-600", bg: "" },
+    { label: "In Progress", value: 0, color: "text-amber-600", bg: "" },
+    { label: "Resolved", value: 0, color: "text-emerald-600", bg: "" },
+    { label: "SLA Breaches", value: 0, color: "text-white", bg: "bg-gradient-to-r from-red-500 to-orange-500" },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Case Management</h1>
-        <p className="text-sm text-muted-foreground">Track and resolve department-level cases with SLA monitoring.</p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Case Management</h1>
+          <p className="text-sm text-muted-foreground">Track and resolve patient feedback cases</p>
+        </div>
+        <Button variant="destructive" className="gap-2">
+          <FileDown className="h-4 w-4" /> Export Report
+        </Button>
       </div>
 
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {statCards.map((card) => (
+          <div key={card.label} className={`card-clinical p-5 ${card.bg ? card.bg + " border-0" : ""}`}>
+            <p className={`text-sm ${card.bg ? "text-white/80" : "text-muted-foreground"}`}>{card.label}</p>
+            <p className={`text-2xl font-bold ${card.color}`}>{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Search + Filters */}
+      <div className="card-clinical p-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by case ID, issue, or patient..."
+            className="pl-10"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="all">All Status</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="all">All Depts</option>
+            <option value="opd">OPD</option>
+            <option value="billing">Billing</option>
+            <option value="pharmacy">Pharmacy</option>
+            <option value="nursing">Nursing</option>
+            <option value="facilities">Facilities</option>
+          </select>
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="all">All Priority</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Table */}
       <div className="card-clinical overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -17,39 +97,25 @@ const CaseManagement = () => {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Department</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Issue</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">SLA Timer</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Priority</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="empty-state py-16">
                     <FolderOpen className="mb-3 h-10 w-10 text-muted-foreground/40" />
-                    <p className="font-medium text-foreground">No cases generated yet</p>
+                    <p className="font-medium text-foreground">No cases found</p>
                     <p className="text-sm max-w-sm text-center">
-                      Cases will appear automatically when negative feedback is detected.
+                      Cases will be created automatically from negative feedback
                     </p>
                   </div>
                 </td>
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">SLA Status:</span>
-          <span className="badge-sla-ok">Within SLA</span>
-          <span className="badge-sla-breach">SLA Breached</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Case Status:</span>
-          <span className="badge-active">Open</span>
-          <span className="badge-treatment">In Progress</span>
-          <span className="badge-discharged">Resolved</span>
         </div>
       </div>
     </div>
