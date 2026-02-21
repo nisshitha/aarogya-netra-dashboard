@@ -76,15 +76,8 @@ const DashboardLayout = () => {
           ))}
         </nav>
 
-        {/* Collapse + Logout */}
-        <div className="border-t border-sidebar-border p-2 space-y-1">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-colors"
-          >
-            <ChevronLeft className={`h-5 w-5 shrink-0 transition-transform ${collapsed ? "rotate-180" : ""}`} />
-            {!collapsed && <span>Collapse</span>}
-          </button>
+        {/* Logout */}
+        <div className="border-t border-sidebar-border p-2">
           <button
             onClick={handleLogout}
             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-colors ${collapsed ? "justify-center" : ""}`}
