@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Menu,
   Bell,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +24,7 @@ const navItems = [
 ];
 
 const DashboardLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [hospitalName, setHospitalName] = useState("Hospital");
   const navigate = useNavigate();
@@ -37,35 +38,38 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface">
-      {/* Overlay for mobile */}
+      {/* Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/30 transition-opacity" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - always overlay */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:relative lg:z-auto ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-sidebar text-sidebar-foreground shadow-2xl transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-          <HeartPulse className="h-7 w-7 shrink-0" />
-          <span className="text-lg font-bold">
-            AAROGYA <span className="opacity-80">NETRA</span>
-          </span>
+        {/* Logo + Close */}
+        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
+          <div className="flex items-center gap-2">
+            <HeartPulse className="h-7 w-7 shrink-0" />
+            <span className="text-lg font-bold">
+              AAROGYA <span className="opacity-80">NETRA</span>
+            </span>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="rounded-lg p-1 hover:bg-sidebar-accent/60 transition-colors">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
-              onClick={() => {
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
+              onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
@@ -81,7 +85,7 @@ const DashboardLayout = () => {
         </nav>
 
         {/* Logout */}
-        <div className="border-t border-sidebar-border p-2">
+        <div className="border-t border-sidebar-border p-3">
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent/60 transition-colors"
@@ -100,13 +104,13 @@ const DashboardLayout = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </Button>
             <div>
               <p className="text-sm font-semibold text-foreground">{hospitalName}</p>
-              <p className="text-xs text-primary">Healthcare Partner</p>
+              <p className="text-xs text-muted-foreground">Hospital Dashboard</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
