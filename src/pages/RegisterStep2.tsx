@@ -50,31 +50,63 @@ const RegisterStep2 = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface px-4 py-12">
-      <div className="w-full max-w-lg">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2">
-            <HeartPulse className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">
-              AAROGYA <span className="text-primary">NETRA</span>
-            </span>
+    <div className="flex min-h-screen">
+      {/* Left Blue Panel */}
+      <div className="hidden lg:flex lg:w-[45%] flex-col justify-between gradient-teal text-white p-10">
+        <div className="flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+            <HeartPulse className="h-6 w-6" />
+          </div>
+          <span className="text-lg font-bold">
+            AAROGYA <span className="opacity-80">NETRA</span>
+          </span>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-3xl font-bold leading-tight">Register Your Hospital</h2>
+          <p className="text-white/80 text-sm leading-relaxed">
+            Join 500+ healthcare institutions using our AI-powered feedback platform.
+          </p>
+
+          <div className="space-y-3 mt-8">
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3 opacity-60">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-bold">1</div>
+              <div>
+                <p className="font-semibold text-sm">Account Setup</p>
+                <p className="text-xs text-white/70">Create login credentials</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-xl bg-white/15 px-4 py-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/30 text-sm font-bold">2</div>
+              <div>
+                <p className="font-semibold text-sm">Hospital Details</p>
+                <p className="text-xs text-white/70">Configure departments & SLA</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="card-clinical overflow-hidden">
-          <div className="border-b border-border bg-secondary px-6 py-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-primary">Step 2 of 2</span>
-              <span className="text-muted-foreground">Hospital Details</span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-muted">
-              <div className="h-1.5 w-full rounded-full gradient-teal" />
+        <div />
+      </div>
+
+      {/* Right Form Panel */}
+      <div className="flex flex-1 items-center justify-center bg-surface px-6 py-12">
+        <div className="w-full max-w-lg">
+          {/* Mobile logo */}
+          <div className="mb-8 text-center lg:hidden">
+            <div className="mb-4 inline-flex items-center gap-2">
+              <HeartPulse className="h-8 w-8 text-primary" />
+              <span className="text-2xl font-bold text-foreground">
+                AAROGYA <span className="text-primary">NETRA</span>
+              </span>
             </div>
           </div>
 
-          <form onSubmit={handleRegister} className="p-6 space-y-5">
-            <h2 className="text-lg font-semibold text-foreground">Hospital Details</h2>
+          <p className="text-sm font-medium text-primary mb-1">Step 2 of 2</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Hospital Details</h1>
+          <p className="text-sm text-muted-foreground mb-8">Configure your departments and SLA settings</p>
 
+          <form onSubmit={handleRegister} className="space-y-5">
             <div className="space-y-2">
               <Label>Hospital Name</Label>
               <div className="relative">

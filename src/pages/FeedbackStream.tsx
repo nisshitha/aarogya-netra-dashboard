@@ -28,7 +28,7 @@ const FeedbackStream = () => {
           <Button variant="outline" size="sm" className="gap-2 border-primary text-primary">
             <Activity className="h-4 w-4" /> Live
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
         </div>
