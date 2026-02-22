@@ -1,4 +1,6 @@
-import { MessageSquare, TrendingDown, FolderOpen, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { MessageSquare, AlertTriangle, FolderOpen, Clock, Download, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   PieChart,
   Pie,
@@ -15,41 +17,111 @@ import {
   Tooltip,
 } from "recharts";
 
-const SENTIMENT_COLORS = ["hsl(152, 69%, 40%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 60%)"];
-
-const emptyPieData = [
-  { name: "Positive", value: 0 },
-  { name: "Neutral", value: 0 },
-  { name: "Negative", value: 0 },
-];
-
 const emptyBarData = [
-  { dept: "OPD", issues: 0 },
-  { dept: "Billing", issues: 0 },
-  { dept: "Pharmacy", issues: 0 },
-  { dept: "Nursing", issues: 0 },
-  { dept: "Facilities", issues: 0 },
+  { dept: "OPD", total: 0, resolved: 0 },
+  { dept: "Billing", total: 0, resolved: 0 },
+  { dept: "Pharmacy", total: 0, resolved: 0 },
+  { dept: "Nursing", total: 0, resolved: 0 },
+  { dept: "Facilities", total: 0, resolved: 0 },
 ];
 
 const emptyLineData = Array.from({ length: 7 }, (_, i) => {
   const d = new Date();
   d.setDate(d.getDate() - (6 - i));
-  return { date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), negative: 0 };
+  return { date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), positive: 0, negative: 0 };
 });
 
+const emptyDailyNegative = Array.from({ length: 7 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (6 - i));
+  return { date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), count: 0 };
+});
+
+const timeRanges = ["Last 24 Hours", "Last 7 Days", "Last 30 Days"];
+
 const AdminAnalytics = () => {
+  const [timeRange, setTimeRange] = useState("Last 7 Days");
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+
   const stats = [
-    { label: "Total Feedback", value: "0", icon: MessageSquare, color: "text-info" },
-    { label: "Negative %", value: "—", icon: TrendingDown, color: "text-destructive" },
-    { label: "Active Cases", value: "0", icon: FolderOpen, color: "text-warning" },
-    { label: "SLA Breaches", value: "0", icon: AlertTriangle, color: "text-destructive" },
+    { label: "Total Feedback", value: "0", icon: MessageSquare, iconBg: "bg-primary/10", iconColor: "text-primary" },
+    { label: "Negative %", value: "—", icon: AlertTriangle, iconBg: "bg-red-50", iconColor: "text-red-500" },
+    { label: "Active Cases", value: "0", icon: FolderOpen, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+    { label: "SLA Breaches", value: "0", icon: Clock, iconBg: "bg-purple-50", iconColor: "text-purple-500" },
   ];
+
+  const handleExport = () => {
+    // Generate a simple PDF-like report
+    const content = `
+AAROGYA NETRA - Analytics Report
+Generated: ${new Date().toLocaleString()}
+Period: ${timeRange}
+
+SUMMARY
+Total Feedback: 0
+Negative %: —
+Active Cases: 0
+SLA Breaches: 0
+
+No data available for the selected period.
+    `.trim();
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `aarogya-netra-report-${new Date().toISOString().split("T")[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Admin Analytics</h1>
-        <p className="text-sm text-muted-foreground">Sentiment trends, department performance, and SLA insights.</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Analytics Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Comprehensive feedback insights and trends</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+            >
+              <Calendar className="h-4 w-4" />
+              {timeRange}
+            </Button>
+            {showTimeDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowTimeDropdown(false)} />
+                <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-border bg-card p-1 shadow-clinical-lg">
+                  {timeRanges.map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => {
+                        setTimeRange(range);
+                        setShowTimeDropdown(false);
+                      }}
+                      className={`flex w-full rounded-md px-3 py-2 text-sm transition-colors ${
+                        timeRange === range
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" /> Export
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -58,74 +130,115 @@ const AdminAnalytics = () => {
           <div key={stat.label} className="stat-card">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-muted-foreground">{stat.label}</span>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.iconBg}`}>
+                <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+              </div>
             </div>
             <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Waiting for incoming data</p>
+            <p className="mt-1 text-xs text-muted-foreground">— vs last period</p>
           </div>
         ))}
       </div>
 
-      {/* Charts */}
+      {/* Row 1: Sentiment Distribution + Department Issues */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Pie */}
+        {/* Donut Chart */}
         <div className="card-clinical p-6">
           <h3 className="mb-4 font-semibold text-foreground">Sentiment Distribution</h3>
-          <div className="flex items-center justify-center" style={{ height: 240 }}>
-            <div className="text-center">
-              <ResponsiveContainer width={200} height={200}>
-                <PieChart>
-                  <Pie
-                    data={[{ name: "No Data", value: 1 }]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={80}
-                    fill="hsl(204, 40%, 90%)"
-                    dataKey="value"
-                    stroke="none"
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <p className="text-sm text-muted-foreground -mt-4">No data available</p>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-center gap-4 text-xs">
-            {emptyPieData.map((entry, i) => (
-              <div key={entry.name} className="flex items-center gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: SENTIMENT_COLORS[i] }} />
-                <span className="text-muted-foreground">{entry.name}</span>
+          <div className="flex items-center justify-center gap-8">
+            <ResponsiveContainer width={180} height={180}>
+              <PieChart>
+                <Pie
+                  data={[{ name: "No Data", value: 1 }]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={80}
+                  fill="hsl(204, 40%, 90%)"
+                  dataKey="value"
+                  stroke="none"
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Positive</p>
+                  <p className="text-xs text-muted-foreground">—</p>
+                </div>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-amber-400" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Neutral</p>
+                  <p className="text-xs text-muted-foreground">—</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-red-500" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Negative</p>
+                  <p className="text-xs text-muted-foreground">—</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Bar */}
+        {/* Department Issues Bar */}
         <div className="card-clinical p-6">
           <h3 className="mb-4 font-semibold text-foreground">Department-wise Issues</h3>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={emptyBarData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(204, 40%, 90%)" />
               <XAxis dataKey="dept" tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
               <Tooltip />
-              <Bar dataKey="issues" fill="hsl(174, 84%, 32%)" radius={[4, 4, 0, 0]} />
+              <Legend />
+              <Bar dataKey="total" name="Total Issues" fill="hsl(210, 80%, 55%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="resolved" name="Resolved" fill="hsl(152, 69%, 45%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
 
-        {/* Line */}
-        <div className="card-clinical p-6 lg:col-span-2">
-          <h3 className="mb-4 font-semibold text-foreground">Daily Negative Trend</h3>
-          <ResponsiveContainer width="100%" height={240}>
+      {/* Row 2: Sentiment Trend + Daily Negative */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="card-clinical p-6">
+          <h3 className="mb-4 font-semibold text-foreground">Sentiment Trend</h3>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={emptyLineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(204, 40%, 90%)" />
               <XAxis dataKey="date" tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
               <Tooltip />
-              <Line type="monotone" dataKey="negative" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+              <Legend />
+              <Line type="monotone" dataKey="positive" name="Positive %" stroke="hsl(152, 69%, 45%)" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="negative" name="Negative %" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="card-clinical p-6">
+          <h3 className="mb-4 font-semibold text-foreground">Daily Negative Feedback</h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={emptyDailyNegative}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(204, 40%, 90%)" />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
+              <YAxis tick={{ fontSize: 12, fill: "hsl(213, 30%, 45%)" }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="count" name="Negative Count" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Top Issue Categories */}
+      <div className="card-clinical p-6">
+        <h3 className="mb-4 font-semibold text-foreground">Top Issue Categories</h3>
+        <div className="empty-state py-12">
+          <p className="text-sm text-muted-foreground">No issue categories available yet</p>
         </div>
       </div>
     </div>

@@ -44,6 +44,7 @@ const RegisterStep2 = () => {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    localStorage.setItem("hospitalName", hospitalName);
     toast({ title: "Hospital Registered", description: "Welcome to Aarogya Netra!" });
     navigate("/dashboard");
   };
