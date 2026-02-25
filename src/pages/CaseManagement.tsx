@@ -1,28 +1,38 @@
 import { useState } from "react";
 import {
   AlertTriangle,
-  Activity,
   Clock,
-  ShieldAlert,
   ChevronDown,
   ChevronUp,
   TrendingDown,
   TrendingUp,
   Minus,
   MessageSquare,
+  ArrowRight,
+  Triangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Mock department data (will be replaced by backend)
-const departments = [
-  { id: "opd", name: "OPD", clusters: 0, riskScore: 0, spikeDetected: false, slaBreaches: 0 },
-  { id: "billing", name: "Billing", clusters: 0, riskScore: 0, spikeDetected: false, slaBreaches: 0 },
-  { id: "pharmacy", name: "Pharmacy", clusters: 0, riskScore: 0, spikeDetected: false, slaBreaches: 0 },
-  { id: "nursing", name: "Nursing", clusters: 0, riskScore: 0, spikeDetected: false, slaBreaches: 0 },
-  { id: "facilities", name: "Facilities", clusters: 0, riskScore: 0, spikeDetected: false, slaBreaches: 0 },
+interface DeptData {
+  id: string;
+  name: string;
+  totalFeedback: number;
+  riskLevel: "High" | "Moderate" | "Low";
+  spikeDetected: boolean;
+  issues: number;
+  slaBreaches: number;
+  resolved: number;
+}
+
+const departments: DeptData[] = [
+  { id: "emergency", name: "Emergency Room", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
+  { id: "icu", name: "Intensive Care Unit", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
+  { id: "opd", name: "OPD", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
+  { id: "billing", name: "Billing", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
+  { id: "pharmacy", name: "Pharmacy", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
+  { id: "nursing", name: "Nursing", totalFeedback: 0, riskLevel: "Low", spikeDetected: false, issues: 0, slaBreaches: 0, resolved: 0 },
 ];
 
-// Mock clusters (empty — ready for backend)
 interface ClusterMessage {
   id: string;
   text: string;
@@ -53,16 +63,10 @@ interface Cluster {
 
 const clusters: Cluster[] = [];
 
-const riskColor = (score: number) => {
-  if (score >= 0.7) return "text-red-500";
-  if (score >= 0.4) return "text-amber-500";
-  return "text-emerald-500";
-};
-
-const riskBg = (score: number) => {
-  if (score >= 0.7) return "bg-red-500/10 border-red-500/20";
-  if (score >= 0.4) return "bg-amber-500/10 border-amber-500/20";
-  return "bg-emerald-500/10 border-emerald-500/20";
+const riskBadgeStyle = (level: string) => {
+  if (level === "High") return "bg-red-100 text-red-600";
+  if (level === "Moderate") return "bg-amber-100 text-amber-600";
+  return "bg-emerald-100 text-emerald-600";
 };
 
 const severityBadge = (s: string) => {
@@ -97,6 +101,10 @@ const CaseManagement = () => {
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
   const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
 
+  const totalIssues = departments.reduce((s, d) => s + d.issues, 0);
+  const highRiskCount = departments.filter((d) => d.riskLevel === "High").length;
+  const totalSLA = departments.reduce((s, d) => s + d.slaBreaches, 0);
+
   const deptClusters = clusters.filter((c) => c.departmentId === selectedDept);
 
   return (
@@ -105,63 +113,89 @@ const CaseManagement = () => {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Department Intelligence</h1>
         <p className="text-sm text-muted-foreground">
-          Monitor department risk levels, issue clusters, and service recovery
+          Real-time overview of patient experience across all departments
         </p>
       </div>
 
-      {/* Department Grid */}
       {!selectedDept ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {departments.map((dept) => (
-            <button
-              key={dept.id}
-              onClick={() => setSelectedDept(dept.id)}
-              className="card-clinical p-5 text-left transition-all hover:shadow-md hover:border-primary/30 group"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground text-lg">{dept.name}</h3>
-                <div className={`rounded-full border px-3 py-1 text-xs font-medium ${riskBg(dept.riskScore)}`}>
-                  <span className={riskColor(dept.riskScore)}>
-                    {dept.riskScore >= 0.7 ? "High Risk" : dept.riskScore >= 0.4 ? "Medium Risk" : "Low Risk"}
+        <>
+          {/* Summary Stats */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="card-clinical p-5">
+              <p className="text-sm text-muted-foreground mb-1">Total Active Issues</p>
+              <p className="text-3xl font-bold text-foreground">{totalIssues}</p>
+            </div>
+            <div className="card-clinical p-5">
+              <p className="text-sm text-muted-foreground mb-1">High Risk Departments</p>
+              <p className="text-3xl font-bold text-red-500">{highRiskCount}</p>
+            </div>
+            <div className="card-clinical p-5">
+              <p className="text-sm text-muted-foreground mb-1">SLA Breaches</p>
+              <p className="text-3xl font-bold text-amber-500">{totalSLA}</p>
+            </div>
+          </div>
+
+          {/* Department Cards */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {departments.map((dept) => (
+              <div key={dept.id} className="card-clinical p-5">
+                {/* Top row: name + risk badge */}
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <h3 className="font-semibold text-foreground text-lg">{dept.name}</h3>
+                    <p className="text-sm text-muted-foreground">{dept.totalFeedback} total feedback</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${riskBadgeStyle(dept.riskLevel)}`}>
+                    {dept.riskLevel}
                   </span>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-lg bg-secondary/50 p-3">
-                  <MessageSquare className="h-4 w-4 mx-auto mb-1 text-primary" />
-                  <p className="text-lg font-bold text-foreground">{dept.clusters}</p>
-                  <p className="text-[10px] text-muted-foreground">Clusters</p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-3">
-                  <Activity className={`h-4 w-4 mx-auto mb-1 ${dept.spikeDetected ? "text-red-500" : "text-muted-foreground"}`} />
-                  <p className="text-lg font-bold text-foreground">{dept.spikeDetected ? "Yes" : "No"}</p>
-                  <p className="text-[10px] text-muted-foreground">Spike</p>
-                </div>
-                <div className="rounded-lg bg-secondary/50 p-3">
-                  <ShieldAlert className={`h-4 w-4 mx-auto mb-1 ${dept.slaBreaches > 0 ? "text-red-500" : "text-muted-foreground"}`} />
-                  <p className="text-lg font-bold text-foreground">{dept.slaBreaches}</p>
-                  <p className="text-[10px] text-muted-foreground">SLA Breach</p>
-                </div>
-              </div>
+                {/* Spike indicator */}
+                {dept.spikeDetected && (
+                  <div className="mt-3 mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
+                      <span className="h-2 w-2 rounded-full bg-red-500" />
+                      Unusual Pattern Detected
+                    </span>
+                  </div>
+                )}
 
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Risk Score</span>
-                  <div className="h-2 w-24 rounded-full bg-secondary overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${dept.riskScore >= 0.7 ? "bg-red-500" : dept.riskScore >= 0.4 ? "bg-amber-400" : "bg-emerald-500"}`}
-                      style={{ width: `${dept.riskScore * 100}%` }}
-                    />
+                {/* Metric boxes */}
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      Issues
+                    </div>
+                    <p className="text-xl font-bold text-foreground">{dept.issues}</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      SLA
+                    </div>
+                    <p className="text-xl font-bold text-red-500">{dept.slaBreaches}</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                      <Triangle className="h-3.5 w-3.5" />
+                      Resolved
+                    </div>
+                    <p className="text-xl font-bold text-emerald-500">{dept.resolved}</p>
                   </div>
                 </div>
-                <span className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  View Clusters →
-                </span>
+
+                {/* View Intelligence Board link */}
+                <button
+                  onClick={() => setSelectedDept(dept.id)}
+                  className="mt-4 flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors w-full justify-center"
+                >
+                  View Intelligence Board <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
-            </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : (
         /* Cluster Intelligence Board */
         <div className="space-y-4">
@@ -184,7 +218,6 @@ const CaseManagement = () => {
           ) : (
             deptClusters.map((cluster) => (
               <div key={cluster.id} className="card-clinical overflow-hidden">
-                {/* Cluster Header */}
                 <button
                   onClick={() => setExpandedCluster(expandedCluster === cluster.id ? null : cluster.id)}
                   className="w-full p-5 text-left"
@@ -196,14 +229,10 @@ const CaseManagement = () => {
                           {cluster.severity.toUpperCase()}
                         </span>
                         {cluster.spikeStatus && (
-                          <span className="rounded bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-500">
-                            ⚡ Spike
-                          </span>
+                          <span className="rounded bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-500">⚡ Spike</span>
                         )}
                         {cluster.status === "monitoring" && (
-                          <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
-                            Monitoring
-                          </span>
+                          <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">Monitoring</span>
                         )}
                       </div>
                       <h3 className="font-semibold text-foreground text-base">{cluster.summary}</h3>
@@ -227,10 +256,8 @@ const CaseManagement = () => {
                   </div>
                 </button>
 
-                {/* Expanded Content */}
                 {expandedCluster === cluster.id && (
                   <div className="border-t border-border">
-                    {/* Feedback Loop Monitoring */}
                     {cluster.feedbackLoop && (
                       <div className="p-5 border-b border-border bg-secondary/30">
                         <h4 className="text-sm font-semibold text-foreground mb-3">Feedback Loop Monitor</h4>
@@ -242,15 +269,11 @@ const CaseManagement = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-8 rounded bg-red-500/20 flex items-center justify-center">
-                                <span className="text-sm font-bold text-red-600">
-                                  {cluster.feedbackLoop.preAvg.toFixed(1)}/day
-                                </span>
+                                <span className="text-sm font-bold text-red-600">{cluster.feedbackLoop.preAvg.toFixed(1)}/day</span>
                               </div>
                               <span className="text-xs text-muted-foreground">→</span>
                               <div className="flex-1 h-8 rounded bg-emerald-500/20 flex items-center justify-center">
-                                <span className="text-sm font-bold text-emerald-600">
-                                  {cluster.feedbackLoop.postAvg.toFixed(1)}/day
-                                </span>
+                                <span className="text-sm font-bold text-emerald-600">{cluster.feedbackLoop.postAvg.toFixed(1)}/day</span>
                               </div>
                             </div>
                           </div>
@@ -268,21 +291,15 @@ const CaseManagement = () => {
                           <div className="text-xs text-muted-foreground">
                             Day {cluster.feedbackLoop.daysMonitored}/14
                             <div className="h-1.5 w-20 rounded-full bg-secondary mt-1 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-primary"
-                                style={{ width: `${(cluster.feedbackLoop.daysMonitored / 14) * 100}%` }}
-                              />
+                              <div className="h-full rounded-full bg-primary" style={{ width: `${(cluster.feedbackLoop.daysMonitored / 14) * 100}%` }} />
                             </div>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Messages */}
                     <div className="p-5 space-y-3">
-                      <h4 className="text-sm font-semibold text-foreground">
-                        Grouped Complaints ({cluster.messages.length})
-                      </h4>
+                      <h4 className="text-sm font-semibold text-foreground">Grouped Complaints ({cluster.messages.length})</h4>
                       {cluster.messages.map((msg) => (
                         <div key={msg.id} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/40">
                           <div className="flex-1">
@@ -299,9 +316,7 @@ const CaseManagement = () => {
                                 style={{ width: `${msg.sentimentScore * 100}%` }}
                               />
                             </div>
-                            <p className="text-[10px] text-muted-foreground text-center mt-1">
-                              {(msg.sentimentScore * 100).toFixed(0)}%
-                            </p>
+                            <p className="text-[10px] text-muted-foreground text-center mt-1">{(msg.sentimentScore * 100).toFixed(0)}%</p>
                           </div>
                         </div>
                       ))}
