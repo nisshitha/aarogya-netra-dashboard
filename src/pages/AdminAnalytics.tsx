@@ -50,29 +50,35 @@ const AdminAnalytics = () => {
     { label: "SLA Breaches", value: "0", icon: Clock, iconBg: "bg-purple-50", iconColor: "text-purple-500" },
   ];
 
-  const handleExport = () => {
-    // Generate a simple PDF-like report
-    const content = `
-AAROGYA NETRA - Analytics Report
-Generated: ${new Date().toLocaleString()}
-Period: ${timeRange}
+  const handleExport = async () => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
 
-SUMMARY
-Total Feedback: 0
-Negative %: —
-Active Cases: 0
-SLA Breaches: 0
+    doc.setFontSize(18);
+    doc.text("AAROGYA NETRA - Analytics Report", 20, 20);
 
-No data available for the selected period.
-    `.trim();
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+    doc.text(`Period: ${timeRange}`, 20, 36);
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `aarogya-netra-report-${new Date().toISOString().split("T")[0]}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    doc.setFontSize(14);
+    doc.text("Summary", 20, 50);
+
+    doc.setFontSize(11);
+    const summaryData = [
+      `Total Feedback: ${stats[0].value}`,
+      `Negative %: ${stats[1].value}`,
+      `Active Cases: ${stats[2].value}`,
+      `SLA Breaches: ${stats[3].value}`,
+    ];
+    summaryData.forEach((line, i) => {
+      doc.text(line, 20, 60 + i * 8);
+    });
+
+    doc.setFontSize(10);
+    doc.text("No additional data available for the selected period.", 20, 100);
+
+    doc.save(`aarogya-netra-report-${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
   return (
