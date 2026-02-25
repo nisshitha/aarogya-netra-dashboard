@@ -9,7 +9,6 @@ const RegisterStep1 = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleNext = (e: React.FormEvent) => {
@@ -117,29 +116,6 @@ const RegisterStep1 = () => {
               </div>
             </div>
 
-            {/* Section B */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-bold">B</span>
-                Feedback Email Configuration
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="feedback-email">Feedback Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="feedback-email"
-                    type="email"
-                    placeholder="feedback@hospital.com"
-                    className="pl-10"
-                    value={feedbackEmail}
-                    onChange={(e) => setFeedbackEmail(e.target.value)}
-                  />
-                </div>
-                <p className="text-xs text-primary">This email will receive patient feedback</p>
-              </div>
-            </div>
 
             <Button type="submit" className="w-full gap-2">
               Next <ArrowRight className="h-4 w-4" />
