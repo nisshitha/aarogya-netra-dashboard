@@ -20,9 +20,7 @@ const navItems = [
   { to: "/dashboard/patients", icon: Users, label: "Patient Management" },
   { to: "/dashboard/feedback", icon: MessageSquare, label: "Feedback Stream" },
   { to: "/dashboard/cases", icon: FolderOpen, label: "Case Management" },
-  { to: "/dashboard/intelligence", icon: HeartPulse, label: "Dept Intelligence" },
   { to: "/dashboard/analytics", icon: BarChart3, label: "Admin Analytics" },
-  { to: "/dashboard/predictive", icon: BarChart3, label: "Predictive Analytics" },
 ];
 
 const DashboardLayout = () => {

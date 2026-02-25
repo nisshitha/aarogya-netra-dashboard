@@ -13,8 +13,6 @@ import PatientManagement from "./pages/PatientManagement";
 import FeedbackStream from "./pages/FeedbackStream";
 import CaseManagement from "./pages/CaseManagement";
 import AdminAnalytics from "./pages/AdminAnalytics";
-import DepartmentIntelligence from "./pages/DepartmentIntelligence";
-import PredictiveAnalytics from "./pages/PredictiveAnalytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,8 +34,6 @@ const App = () => (
             <Route path="feedback" element={<FeedbackStream />} />
             <Route path="cases" element={<CaseManagement />} />
             <Route path="analytics" element={<AdminAnalytics />} />
-            <Route path="intelligence" element={<DepartmentIntelligence />} />
-            <Route path="predictive" element={<PredictiveAnalytics />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
